@@ -1,3 +1,9 @@
+## [1.0.3](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.2...v1.0.3) (2026-08-13)
+
+### CI/CD
+
+* trigger npm publish ([187d08e](https://github.com/Welington98/plugin-opencode-litellm/commit/187d08eb1029eb421bcaf7648ef7e2f9bae1b626))
+
 ## [1.0.2](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.1...v1.0.2) (2026-08-13)
 
 ### CI/CD
