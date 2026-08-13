@@ -235,9 +235,8 @@ bun scripts/mock-litellm.ts 4000
 
 ## Release & publicação (CI)
 
-- **Versionamento**: `semantic-release` via `h2o-innovation/hub-workflows` (`.github/workflows/release.yml`), disparado no push para `main` — gera `CHANGELOG.md` e cria a GitHub Release a partir dos Conventional Commits.
-- **npm**: `.github/workflows/npm-publish.yml` publica `@h2o-innovation/opencode-litellm` quando uma Release é criada (usa o secret `NPM_TOKEN`).
-- Versionamento manual: `npm version patch|minor|major` + `gh release create`.
+- **Versionamento + npm**: `semantic-release` roda em `.github/workflows/release.yml` a cada push para `main` — analisa os Conventional Commits, gera `CHANGELOG.md`, cria a GitHub Release **e publica `@h2o-innovation/opencode-litellm` no npm** (usa o secret `NPM_TOKEN`).
+- O repo é público, então o workflow é autocontido (não chama reusable workflows internos da org).
 
 ---
 
