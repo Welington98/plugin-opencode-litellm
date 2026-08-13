@@ -1,0 +1,27 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: plugin-opencode-litellm
+  title: OpenCode LiteLLM Plugin
+  description: OpenCode plugin/provider for LiteLLM Proxy — configure endpoint and API key inside OpenCode and auto-discover authorized models.
+  annotations:
+    github.com/project-slug: h2o-innovation/plugin-opencode-litellm
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - opencode
+    - plugin
+    - litellm
+    - platform
+    - devops
+  links:
+    - url: https://github.com/h2o-innovation/plugin-opencode-litellm
+      title: GitHub Repository
+      icon: github
+    - url: https://www.npmjs.com/package/@h2o-innovation/opencode-litellm
+      title: npm Package
+      icon: package
+spec:
+  type: library
+  lifecycle: production
+  owner: group:squad-devops
+  system: hub

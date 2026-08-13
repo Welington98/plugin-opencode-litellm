@@ -1,0 +1,12 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    uses: h2o-innovation/hub-workflows/.github/workflows/semantic-release.yml@main
+    with:
+      node-version: '20'
+      working-directory: '.'
