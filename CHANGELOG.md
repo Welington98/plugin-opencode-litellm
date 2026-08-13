@@ -1,3 +1,9 @@
+## [1.0.2](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.1...v1.0.2) (2026-08-13)
+
+### CI/CD
+
+* enable npm publish via @semantic-release/npm ([f12e082](https://github.com/Welington98/plugin-opencode-litellm/commit/f12e082bc4d7bdb38e25b6e214a051b6c1cf9ded))
+
 ## [1.0.1](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.0...v1.0.1) (2026-08-13)
 
 ### CI/CD
