@@ -4,9 +4,35 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   release:
-    uses: h2o-innovation/hub-workflows/.github/workflows/semantic-release.yml@main
-    with:
-      node-version: '20'
-      working-directory: '.'
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v5
+        id: semantic
+        with:
+          semantic_version: 24
+          branches: '["main"]'
+          extra_plugins: |
+            @semantic-release/git@^10
+            @semantic-release/changelog@^6
+            conventional-changelog-conventionalcommits@^8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
