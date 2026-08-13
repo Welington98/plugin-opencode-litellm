@@ -1,3 +1,9 @@
+## [1.0.4](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.3...v1.0.4) (2026-08-13)
+
+### Bug Fixes
+
+* default-export plugin modules as { server }/{ tui } so TUI slash commands load ([cd31442](https://github.com/Welington98/plugin-opencode-litellm/commit/cd3144293ce7338df365a883b5d1dabdb59356c3))
+
 ## [1.0.3](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.2...v1.0.3) (2026-08-13)
 
 ### CI/CD
