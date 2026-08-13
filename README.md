@@ -235,7 +235,8 @@ bun scripts/mock-litellm.ts 4000
 
 ## Release & publicação (CI)
 
-- **Versionamento + npm**: `semantic-release` roda em `.github/workflows/release.yml` a cada push para `main` — analisa os Conventional Commits, gera `CHANGELOG.md`, cria a GitHub Release **e publica `@welington98/opencode-litellm` no npm** (usa o secret `NPM_TOKEN`).
+- **Versionamento**: `semantic-release` roda em `.github/workflows/release.yml` a cada push para `main` — analisa os Conventional Commits, gera `CHANGELOG.md` e cria a GitHub Release.
+- **npm**: a publicação em `@welington98/opencode-litellm` fica **desabilitada** até o secret `NPM_TOKEN` ser configurado no repositório. Para habilitar: `gh secret set NPM_TOKEN` com um token npm (Automation) e reativar `@semantic-release/npm` no `release.config.cjs`.
 - O repo é público, então o workflow é autocontido (não chama reusable workflows internos da org).
 
 ---
