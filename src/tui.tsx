@@ -1,4 +1,4 @@
-import type { TuiPlugin, TuiPluginApi, TuiDialogStack } from "@opencode-ai/plugin/tui"
+import type { TuiPlugin, TuiPluginApi, TuiDialogStack, TuiPluginModule } from "@opencode-ai/plugin/tui"
 import { PROVIDER_ID } from "./types"
 import { discoverModels, isCacheFresh } from "./litellm/discovery"
 import { readCache, settingsFromAuth } from "./config/settings"
@@ -66,7 +66,7 @@ export const LiteLLMTuiPlugin: TuiPlugin = async (api) => {
   api.lifecycle.onDispose(disposeCommands)
 }
 
-export default LiteLLMTuiPlugin
+export default { tui: LiteLLMTuiPlugin } satisfies TuiPluginModule
 
 /** Prompt for a single text value using the native dialog. */
 function promptText(

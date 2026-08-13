@@ -1,4 +1,4 @@
-import { type Hooks, type Plugin, type PluginInput, type PluginOptions, type Config, tool } from "@opencode-ai/plugin"
+import { type Hooks, type Plugin, type PluginModule, type PluginInput, type PluginOptions, type Config, tool } from "@opencode-ai/plugin"
 import type { ApiAuth, Model } from "@opencode-ai/sdk/v2"
 import type { OpencodeClient } from "@opencode-ai/sdk"
 import { PROVIDER_ID } from "./types"
@@ -128,7 +128,7 @@ export const LiteLLMPlugin: Plugin = async (input: PluginInput, _options?: Plugi
   }
 }
 
-export default LiteLLMPlugin
+export default { server: LiteLLMPlugin } satisfies PluginModule
 
 /** Inject the `litellm` provider into the merged config (official plugin mechanism). */
 async function injectLiteLLMProvider(cfg: Config, client: OpencodeClient): Promise<void> {
