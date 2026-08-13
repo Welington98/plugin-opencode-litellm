@@ -1,6 +1,6 @@
 {
   "name": "@welington98/opencode-litellm",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "OpenCode plugin/provider for LiteLLM Proxy — configure endpoint + API key inside OpenCode and auto-discover authorized models.",
   "license": "MIT",
   "type": "module",

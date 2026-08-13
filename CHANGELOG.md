@@ -1,3 +1,9 @@
+## [1.0.5](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.4...v1.0.5) (2026-08-13)
+
+### Bug Fixes
+
+* persist metadata schema in mergeCacheMetadata to fix stale cache and model count ([1d794ca](https://github.com/Welington98/plugin-opencode-litellm/commit/1d794cae59ccc6e9cd7936eb5f5c07d171335445))
+
 ## [1.0.4](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.3...v1.0.4) (2026-08-13)
 
 ### Bug Fixes
