@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.0...v1.0.1) (2026-08-13)
+
+### CI/CD
+
+* publish to npm from semantic-release ([8da71fb](https://github.com/Welington98/plugin-opencode-litellm/commit/8da71fbccc7a3ea5895b613bd86434fc8ad0620a))
+
 ## 1.0.0 (2026-08-13)
 
 ### Features
