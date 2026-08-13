@@ -39,6 +39,7 @@ export function mergeCacheMetadata(
 ): Record<string, string> {
   return {
     ...(metadata ?? {}),
+    [META_SCHEMA]: METADATA_SCHEMA,
     [META_MODELS_FETCHED_AT]: String(cache.fetchedAt),
     [META_MODELS_CACHE]: JSON.stringify(cache.models),
   }

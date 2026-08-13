@@ -60,6 +60,16 @@ describe("mergeCacheMetadata", () => {
     const next = mergeCacheMetadata(metadata, { fetchedAt: 999, models: cache.models })
     expect(next["endpoint"]).toBe(settingsEndpoint)
     expect(next["models_fetched_at"]).toBe("999")
+    expect(next["schema"]).toBe("1")
+  })
+
+  test("adds schema and allows readCache even if input is basic (e.g. from CLI login)", () => {
+    const basicMetadata = { endpoint: settingsEndpoint }
+    const next = mergeCacheMetadata(basicMetadata, cache)
+    expect(next["schema"]).toBe("1")
+    const decoded = readCache(next)
+    expect(decoded).toBeDefined()
+    expect(decoded?.fetchedAt).toBe(cache.fetchedAt)
   })
 })
 
