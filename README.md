@@ -1,4 +1,4 @@
-# @h2o-innovation/opencode-litellm
+# @welington98/opencode-litellm
 
 Plugin **e provider** para o [OpenCode](https://opencode.ai) que integra automaticamente com um servidor [LiteLLM Proxy](https://docs.litellm.ai). Configure o **endpoint** e a **API key dentro do próprio OpenCode** — sem variáveis de ambiente, sem editar `opencode.json` e sem cadastrar modelo por modelo.
 
@@ -26,10 +26,10 @@ Test Connection  ✓  ✓  ✓
 
 ```bash
 # opcional: via CLI (instala e adiciona ao config)
-opencode plugin @h2o-innovation/opencode-litellm
+opencode plugin @welington98/opencode-litellm
 
 # ou instale no TUI:
-#   /plugins  →  install  →  @h2o-innovation/opencode-litellm
+#   /plugins  →  install  →  @welington98/opencode-litellm
 ```
 
 Ou adicione manualmente em `opencode.json`:
@@ -37,7 +37,7 @@ Ou adicione manualmente em `opencode.json`:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@h2o-innovation/opencode-litellm"]
+  "plugin": ["@welington98/opencode-litellm"]
 }
 ```
 
@@ -230,12 +230,12 @@ bun scripts/mock-litellm.ts 4000
 
 # instalar a versão local em um projeto de teste:
 #   copie dist/ para onde preferir e aponte o plugin para ele
-#   (ou publique o pacote e use opencode plugin @h2o-innovation/opencode-litellm)
+#   (ou publique o pacote e use opencode plugin @welington98/opencode-litellm)
 ```
 
 ## Release & publicação (CI)
 
-- **Versionamento + npm**: `semantic-release` roda em `.github/workflows/release.yml` a cada push para `main` — analisa os Conventional Commits, gera `CHANGELOG.md`, cria a GitHub Release **e publica `@h2o-innovation/opencode-litellm` no npm** (usa o secret `NPM_TOKEN`).
+- **Versionamento + npm**: `semantic-release` roda em `.github/workflows/release.yml` a cada push para `main` — analisa os Conventional Commits, gera `CHANGELOG.md`, cria a GitHub Release **e publica `@welington98/opencode-litellm` no npm** (usa o secret `NPM_TOKEN`).
 - O repo é público, então o workflow é autocontido (não chama reusable workflows internos da org).
 
 ---

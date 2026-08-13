@@ -1,16 +1,16 @@
 {
-  "name": "@h2o-innovation/opencode-litellm",
+  "name": "@welington98/opencode-litellm",
   "version": "0.1.0",
   "description": "OpenCode plugin/provider for LiteLLM Proxy — configure endpoint + API key inside OpenCode and auto-discover authorized models.",
   "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/h2o-innovation/plugin-opencode-litellm.git"
+    "url": "git+https://github.com/Welington98/plugin-opencode-litellm.git"
   },
-  "homepage": "https://github.com/h2o-innovation/plugin-opencode-litellm#readme",
+  "homepage": "https://github.com/Welington98/plugin-opencode-litellm#readme",
   "bugs": {
-    "url": "https://github.com/h2o-innovation/plugin-opencode-litellm/issues"
+    "url": "https://github.com/Welington98/plugin-opencode-litellm/issues"
   },
   "publishConfig": {
     "access": "public"
