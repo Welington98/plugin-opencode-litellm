@@ -1,14 +1,18 @@
 import { type Hooks, type Plugin, type PluginModule, type PluginInput, type PluginOptions, type Config, tool } from "@opencode-ai/plugin"
 import type { ApiAuth, Model } from "@opencode-ai/sdk/v2"
 import type { OpencodeClient } from "@opencode-ai/sdk"
-import { PROVIDER_ID } from "./types"
+import { PROVIDER_ID, META_FALLBACKS, type Modality } from "./types"
 import {
   clearLastError,
   mergeCacheMetadata,
   readCache,
   readLastError,
   settingsFromAuth,
+  readFallbackMap,
+  writeFallbackMap,
+  registerAgentConfig,
 } from "./config/settings"
+import { z } from "zod"
 import { litellmBaseURL, validateEndpoint } from "./config/validation"
 import { LiteLLMClient } from "./litellm/client"
 import { cacheToModels, discoverModels, isCacheFresh } from "./litellm/discovery"
@@ -35,6 +39,15 @@ export const LiteLLMPlugin: Plugin = async (input: PluginInput, _options?: Plugi
   return {
     config: async (cfg) => {
       await injectLiteLLMProvider(cfg, client)
+      
+      // Register static hidden subagent for standard fallbacks
+      cfg.agent = cfg.agent || {}
+      cfg.agent["litellm-media"] = {
+        prompt: "You are a media analyzer subagent. Analyze the attached file(s) and provide a detailed textual description, transcription, or summary as appropriate. Return ONLY the description, transcription, or summary, with no introduction or preamble.",
+        mode: "subagent",
+        hidden: true,
+        description: "Standard media fallback subagent for the LiteLLM plugin.",
+      }
     },
 
     auth: {
@@ -122,6 +135,195 @@ export const LiteLLMPlugin: Plugin = async (input: PluginInput, _options?: Plugi
           return "✓ Disconnected LiteLLM. The credential and discovered models were removed. Restart opencode to fully clear the provider."
         },
       }),
+
+      litellm_register_agent: tool({
+        description: "Register a custom fallback subagent in the global opencode.json config file.",
+        args: {
+          name: z.string().describe("The agent name in kebab-case"),
+          model: z.string().describe("The model ID (e.g. litellm/gemini-3.5-flash)"),
+          prompt: z.string().describe("The system prompt for the agent"),
+        },
+        async execute(args) {
+          const result = await registerAgentConfig(args.name, args.model, args.prompt)
+          if (result.ok) {
+            return `✓ Agent "${args.name}" successfully registered in global opencode.json config.`
+          }
+          return `Failed to register agent: ${result.error}`
+        },
+      }),
+
+      litellm_set_fallback: tool({
+        description: "Configure a fallback model or agent for a specific media modality (image, pdf, audio).",
+        args: {
+          modality: z.enum(["image", "pdf", "audio"]).describe("The media modality"),
+          target: z.string().describe("The target model ID or 'agent:<name>', or empty to clear"),
+        },
+        async execute(args) {
+          const auth = await readAuthRecord(PROVIDER_ID)
+          if (!auth) return "LiteLLM is not configured."
+          const currentMap = readFallbackMap(auth.metadata)
+          currentMap[args.modality] = args.target
+          const metadata = writeFallbackMap(auth.metadata, currentMap)
+          
+          const result = await client.auth.set({
+            path: { id: PROVIDER_ID },
+            body: { type: "api", key: auth.key, metadata },
+          })
+          if (result.error) {
+            return `Failed to configure fallback: ${safeErrorMessage(result.error, [auth.key])}`
+          }
+          return `✓ Fallback for "${args.modality}" set to "${args.target || "none (cleared)"}".`
+        },
+      }),
+    },
+
+    "chat.message": async (input, output) => {
+      const msgModel = output.message.model
+      if (!msgModel || msgModel.providerID !== PROVIDER_ID) return
+
+      const parts = output.parts
+      const hasImage = parts.some((p) => p.type === "file" && p.mime?.startsWith("image/"))
+      const hasPdf = parts.some((p) => p.type === "file" && p.mime === "application/pdf")
+      const hasAudio = parts.some((p) => p.type === "file" && p.mime?.startsWith("audio/"))
+
+      if (!hasImage && !hasPdf && !hasAudio) return
+
+      const auth = await readAuthRecord(PROVIDER_ID)
+      if (!auth) return
+      const cache = readCache(auth.metadata)
+      if (!cache) return
+
+      const fallbackMap = readFallbackMap(auth.metadata)
+      const currentModelMeta = cache.models[msgModel.modelID]
+
+      const runFallbackSubagent = async (target: string, modalityParts: typeof parts, defaultPrompt: string): Promise<string> => {
+        const isAgent = target.startsWith("agent:")
+        const targetAgent = isAgent ? target.slice(6) : "litellm-media"
+        const targetModel = isAgent ? undefined : { providerID: PROVIDER_ID, modelID: target }
+
+        const childRes = await client.session.create({
+          body: {
+            parentID: input.sessionID,
+            title: `Media analysis (@${targetAgent})`,
+          },
+        })
+        if (childRes.error) {
+          throw new Error(safeErrorMessage(childRes.error, [auth.key]))
+        }
+        if (!childRes.data) {
+          throw new Error("Failed to create child session: response empty")
+        }
+        const childID = childRes.data.id
+
+        const res = await client.session.prompt({
+          path: { id: childID },
+          body: {
+            agent: targetAgent,
+            ...(targetModel && { model: targetModel }),
+            parts: modalityParts.map((p) => ({
+              type: "file" as const,
+              mime: (p as any).mime,
+              filename: (p as any).filename,
+              url: (p as any).url,
+            })),
+          },
+        })
+        if (res.error) {
+          throw new Error(safeErrorMessage(res.error, [auth.key]))
+        }
+        if (!res.data) {
+          throw new Error("Failed to run prompt on child session: response empty")
+        }
+
+        const textParts = res.data.parts.filter((p: any) => p.type === "text")
+        const text = textParts.map((p: any) => p.text).join("\n").trim()
+        return text || "(sem descrição)"
+      }
+
+      const modalitiesToProcess: Array<{ modality: Modality; partsFilter: (p: any) => boolean; defaultPrompt: string }> = []
+      if (hasImage && currentModelMeta?.capabilities?.input?.image === false) {
+        modalitiesToProcess.push({
+          modality: "image",
+          partsFilter: (p) => p.type === "file" && p.mime?.startsWith("image/"),
+          defaultPrompt: "Descreva o conteúdo desta imagem em detalhes.",
+        })
+      }
+      if (hasPdf && currentModelMeta?.capabilities?.input?.pdf === false) {
+        modalitiesToProcess.push({
+          modality: "pdf",
+          partsFilter: (p) => p.type === "file" && p.mime === "application/pdf",
+          defaultPrompt: "Faça um resumo executivo deste documento PDF.",
+        })
+      }
+      if (hasAudio && currentModelMeta?.capabilities?.input?.audio === false) {
+        modalitiesToProcess.push({
+          modality: "audio",
+          partsFilter: (p) => p.type === "file" && p.mime?.startsWith("audio/"),
+          defaultPrompt: "Transcreva o áudio em detalhes.",
+        })
+      }
+
+      for (const item of modalitiesToProcess) {
+        const target = fallbackMap[item.modality]
+        if (!target) continue
+
+        const targetModelID = target.startsWith("agent:") ? undefined : target
+        const targetModelMeta = targetModelID ? cache.models[targetModelID] : undefined
+
+        if (targetModelMeta) {
+          const supported = targetModelMeta.capabilities?.input?.[item.modality] === true
+          if (!supported) continue
+        }
+
+        const modalityParts = parts.filter(item.partsFilter)
+        if (modalityParts.length === 0) continue
+
+        try {
+          const desc = await runFallbackSubagent(target, modalityParts, item.defaultPrompt)
+          
+          const firstPart = modalityParts[0]!
+          const label = item.modality === "image" ? "Imagem" : item.modality === "pdf" ? "PDF" : "Áudio"
+          const fallbackLabel = target.startsWith("agent:") ? `@${target.slice(6)}` : target
+          
+          const textPart = {
+            id: firstPart.id,
+            sessionID: firstPart.sessionID,
+            messageID: firstPart.messageID,
+            type: "text" as const,
+            text: `[Anexo de ${label} processado pelo fallback ${fallbackLabel}]\n${desc}`,
+            synthetic: true,
+          }
+
+          const firstIndex = parts.indexOf(firstPart)
+          if (firstIndex !== -1) {
+            for (const p of modalityParts) {
+              const idx = parts.indexOf(p)
+              if (idx !== -1) parts.splice(idx, 1)
+            }
+            parts.splice(firstIndex, 0, textPart as any)
+          }
+        } catch (error) {
+          const firstPart = modalityParts[0]!
+          const label = item.modality === "image" ? "Imagem" : item.modality === "pdf" ? "PDF" : "Áudio"
+          const errorMsg = error instanceof Error ? error.message : String(error)
+          const textPart = {
+            id: firstPart.id,
+            sessionID: firstPart.sessionID,
+            messageID: firstPart.messageID,
+            type: "text" as const,
+            text: `[Falha ao analisar o anexo de ${label}: ${errorMsg}]`,
+            synthetic: true,
+          }
+          const firstIndex = parts.indexOf(firstPart)
+          if (firstIndex !== -1) {
+            for (const p of modalityParts) {
+              const idx = parts.indexOf(p)
+              if (idx !== -1) parts.splice(idx, 1)
+            }
+            parts.splice(firstIndex, 0, textPart as any)
+          }
+        }
+      }
     },
 
     dispose: async () => {},
@@ -221,6 +423,16 @@ async function awaitStatusText(): Promise<string> {
   const lastError = readLastError(auth.metadata)
   const count = cache ? Object.keys(cache.models).length : 0
   const lastRefresh = cache ? formatRelativeTime(cache.fetchedAt) : "never"
+  
+  const fallbacks = readFallbackMap(auth.metadata)
+  const fbLines: string[] = []
+  for (const [m, target] of Object.entries(fallbacks)) {
+    if (target) {
+      const label = target.startsWith("agent:") ? `@${target.slice(6)}` : target
+      fbLines.push(`  - ${m}: ${label}`)
+    }
+  }
+
   const lines = [
     "LiteLLM: Connected",
     `Endpoint: ${settings.endpoint}`,
@@ -228,6 +440,10 @@ async function awaitStatusText(): Promise<string> {
     `Models: ${count}`,
     `Last refresh: ${lastRefresh}`,
   ]
+  if (fbLines.length > 0) {
+    lines.push("Fallbacks:")
+    lines.push(...fbLines)
+  }
   if (lastError) lines.push(`Last error: ${lastError.message}`)
   return lines.join("\n")
 }

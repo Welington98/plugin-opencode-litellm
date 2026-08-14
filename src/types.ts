@@ -15,6 +15,9 @@ export const META_ENDPOINT = "endpoint"
 export const META_SCHEMA = "schema"
 export const META_MODELS_CACHE = "models_cache"
 export const META_MODELS_FETCHED_AT = "models_fetched_at"
+export const META_FALLBACKS = "fallbacks"
+
+export type Modality = "image" | "pdf" | "audio"
 
 /** Serializable slice of an opencode Model persisted in auth metadata as a cache. */
 export type ModelMeta = Omit<Model, "id" | "providerID">

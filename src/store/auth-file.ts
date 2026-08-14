@@ -22,6 +22,16 @@ export function authFilePath(): string {
   return path.join(os.homedir(), ".local", "share", "opencode", "auth.json")
 }
 
+export function configFilePath(): string {
+  const xdg = process.env.XDG_CONFIG_HOME
+  if (xdg) return path.join(xdg, "opencode", "opencode.json")
+  if (process.platform === "win32") {
+    const local = process.env.LOCALAPPDATA
+    return local ? path.join(local, "opencode", "opencode.json") : path.join(os.homedir(), "AppData", "Local", "opencode", "opencode.json")
+  }
+  return path.join(os.homedir(), ".config", "opencode", "opencode.json")
+}
+
 async function readAll(): Promise<Record<string, unknown>> {
   try {
     const file = Bun.file(authFilePath())

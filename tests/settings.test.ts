@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { buildMetadata, clearLastError, mergeCacheMetadata, readCache, readLastError, settingsFromAuth } from "../src/config/settings"
+import { buildMetadata, clearLastError, mergeCacheMetadata, readCache, readLastError, settingsFromAuth, readFallbackMap, writeFallbackMap } from "../src/config/settings"
 import type { ApiAuth } from "@opencode-ai/sdk/v2"
 import type { ModelsCache } from "../src/types"
 import { buildModel, toModelMeta } from "../src/provider/models"
@@ -87,5 +87,28 @@ describe("readLastError", () => {
     const withError = { last_error: "boom", last_error_at: "123" }
     expect(readLastError(withError)).toEqual({ message: "boom", at: 123 })
     expect(readLastError({})).toBeUndefined()
+  })
+})
+
+describe("readFallbackMap + writeFallbackMap", () => {
+  test("returns empty map on undefined or missing raw data", () => {
+    const empty = readFallbackMap(undefined)
+    expect(empty).toEqual({ image: "", pdf: "", audio: "" })
+    expect(readFallbackMap({})).toEqual({ image: "", pdf: "", audio: "" })
+  })
+
+  test("round-trips fallback configurations", () => {
+    const initialMap = { image: "litellm/gemini-3.5-flash", pdf: "agent:resumo-pdf", audio: "" }
+    const metadata = writeFallbackMap({}, initialMap)
+    expect(metadata["fallbacks"]).toBeDefined()
+
+    const readBack = readFallbackMap(metadata)
+    expect(readBack).toEqual(initialMap)
+  })
+
+  test("ignores invalid formats gracefully", () => {
+    const badMetadata = { fallbacks: "not-json" }
+    const map = readFallbackMap(badMetadata)
+    expect(map).toEqual({ image: "", pdf: "", audio: "" })
   })
 })
