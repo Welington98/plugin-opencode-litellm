@@ -24,15 +24,23 @@ Test Connection  ✓  ✓  ✓
 
 ## Instalação
 
+> **Instale sempre de forma global (`-g`)** para o plugin valer em qualquer projeto. Sem `-g` ele é instalado apenas no repositório atual (`.opencode/`).
+
 ```bash
-# opcional: via CLI (instala e adiciona ao config)
+# global (usuário) — disponível em qualquer projeto
+opencode plugin @welington98/opencode-litellm -g
+
+# atualizar para a versão mais recente já instalada
+opencode plugin @welington98/opencode-litellm -g -f
+
+# (alternativa) instalar apenas no projeto atual
 opencode plugin @welington98/opencode-litellm
 
 # ou instale no TUI:
 #   /plugins  →  install  →  @welington98/opencode-litellm
 ```
 
-Ou adicione manualmente em `opencode.json`:
+Ou adicione manualmente em `opencode.json` (global em `~/.config/opencode/opencode.json` ou local no projeto):
 
 ```json
 {
