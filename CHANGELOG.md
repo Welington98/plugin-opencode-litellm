@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.5...v1.1.0) (2026-08-14)
+
+### Features
+
+* implement generic media fallback and dynamic custom subagent creation so users can create subagents on the fly ([da0ad2d](https://github.com/Welington98/plugin-opencode-litellm/commit/da0ad2df36de7de1d20e3f226263b5919ae26bea))
+
 ## [1.0.5](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.4...v1.0.5) (2026-08-13)
 
 ### Bug Fixes
