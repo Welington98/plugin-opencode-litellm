@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.1...v1.1.2) (2026-09-08)
+
+### Bug Fixes
+
+* filter non-chat models reliably and show plugin version ([53f9e52](https://github.com/Welington98/plugin-opencode-litellm/commit/53f9e525f6bda37c428188965919430572647c66))
+* only expose active models (filter blocked/paused via /v1/model/info) ([5b35de3](https://github.com/Welington98/plugin-opencode-litellm/commit/5b35de38bcf27cdf29feb740d21948c214e65948))
+
 ## [1.1.1](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.0...v1.1.1) (2026-09-08)
 
 ### Bug Fixes
