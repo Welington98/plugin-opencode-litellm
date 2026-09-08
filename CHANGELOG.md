@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.0...v1.1.1) (2026-09-08)
+
+### Bug Fixes
+
+* validate model listing and drop legacy non-chat models ([39ebf55](https://github.com/Welington98/plugin-opencode-litellm/commit/39ebf55f71dbfb4fa3df9dcc0aaffc404a69e9c8))
+
 ## [1.1.0](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.0.5...v1.1.0) (2026-08-14)
 
 ### Features
