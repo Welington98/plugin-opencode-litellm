@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test"
 import { buildMetadata, clearLastError, mergeCacheMetadata, readCache, readLastError, settingsFromAuth, readFallbackMap, writeFallbackMap } from "../src/config/settings"
 import type { ApiAuth } from "@opencode-ai/sdk/v2"
-import type { ModelsCache } from "../src/types"
+import { METADATA_SCHEMA, type ModelsCache } from "../src/types"
 import { buildModel, toModelMeta } from "../src/provider/models"
 
 const settingsEndpoint = "https://litellm.example.com"
@@ -60,13 +60,13 @@ describe("mergeCacheMetadata", () => {
     const next = mergeCacheMetadata(metadata, { fetchedAt: 999, models: cache.models })
     expect(next["endpoint"]).toBe(settingsEndpoint)
     expect(next["models_fetched_at"]).toBe("999")
-    expect(next["schema"]).toBe("1")
+    expect(next["schema"]).toBe(METADATA_SCHEMA)
   })
 
   test("adds schema and allows readCache even if input is basic (e.g. from CLI login)", () => {
     const basicMetadata = { endpoint: settingsEndpoint }
     const next = mergeCacheMetadata(basicMetadata, cache)
-    expect(next["schema"]).toBe("1")
+    expect(next["schema"]).toBe(METADATA_SCHEMA)
     const decoded = readCache(next)
     expect(decoded).toBeDefined()
     expect(decoded?.fetchedAt).toBe(cache.fetchedAt)

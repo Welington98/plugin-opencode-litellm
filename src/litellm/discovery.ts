@@ -2,7 +2,7 @@ import { CACHE_TTL_MS, META_MODELS_CACHE, META_MODELS_FETCHED_AT, META_ENDPOINT,
 import type { DiscoveryResult, LiteLLMModel, LiteLLMModelGroup, LiteLLMSettings, ModelsCache } from "../types"
 import { LiteLLMClient } from "./client"
 import { buildModel, fromModelMeta, toModelMeta } from "../provider/models"
-import { isChatMode } from "./capabilities"
+import { isChatModel } from "./capabilities"
 import { validateEndpoint } from "../config/validation"
 
 export { CACHE_TTL_MS }
@@ -51,9 +51,11 @@ export async function discoverModels(settings: LiteLLMSettings): Promise<Discove
 
   const models: Record<string, LiteLLMModel> = {}
   for (const id of ids) {
-    const meta = byId.get(id)
-    // Exclude clearly non-chat model groups (embeddings, image gen, ...).
-    if (meta && !isChatMode(meta.mode)) continue
+    const meta = findMeta(id, byId)
+    // Exclude non-chat models (embeddings, image gen, base completions, ...)
+    // using authoritative `mode` metadata when available, or the name
+    // heuristic otherwise.
+    if (!isChatModel(id, meta)) continue
     models[id] = buildModel(id, settings, meta)
   }
 
@@ -64,6 +66,23 @@ export async function discoverModels(settings: LiteLLMSettings): Promise<Discove
   }
 
   return { models, fetchedAt: Date.now() }
+}
+
+/**
+ * Resolve capability metadata for a model id from `/v1/models`. LiteLLM often
+ * returns ids that do not exactly match the `model_group` key (provider
+ * prefixes like `openai/gpt-4o`, or image size/quality variants like
+ * `openai/1024-x-1024/dall-e-2`), so we fall back to progressively shorter
+ * suffixes before giving up.
+ */
+export function findMeta(id: string, byId: Map<string, LiteLLMModelGroup>): LiteLLMModelGroup | undefined {
+  if (byId.has(id)) return byId.get(id)
+  const segments = id.split("/")
+  for (let i = 1; i < segments.length; i++) {
+    const candidate = segments.slice(i).join("/")
+    if (candidate && byId.has(candidate)) return byId.get(candidate)
+  }
+  return undefined
 }
 
 /** Serialize a catalog into the string metadata fields. */

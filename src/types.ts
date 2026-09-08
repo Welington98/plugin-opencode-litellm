@@ -8,8 +8,14 @@ export const CACHE_TTL_MS = 5 * 60 * 1000
 /** Default timeout for every LiteLLM HTTP call. */
 export const REQUEST_TIMEOUT_MS = 10_000
 
-/** Auth metadata schema version. Bump to invalidate old caches. */
-export const METADATA_SCHEMA = "1"
+/**
+ * Auth metadata schema version. Bump to invalidate old caches.
+ *
+ * v1 -> v2: the old catalog included non-chat models (embeddings, image/audio
+ * generation, base completions, ...) that were never correctly filtered, so
+ * every stale cache written under "1" must be discarded and re-discovered.
+ */
+export const METADATA_SCHEMA = "2"
 
 export const META_ENDPOINT = "endpoint"
 export const META_SCHEMA = "schema"

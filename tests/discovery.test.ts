@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import { buildModel, fromModelMeta, toModelMeta } from "../src/provider/models"
-import { decodeCache, encodeCache, cacheToModels, isCacheFresh, discoverModels, parseEndpoint } from "../src/litellm/discovery"
+import { decodeCache, encodeCache, cacheToModels, isCacheFresh, discoverModels, parseEndpoint, findMeta } from "../src/litellm/discovery"
 import { LiteLLMError } from "../src/litellm/client"
-import type { LiteLLMSettings } from "../src/types"
+import type { LiteLLMModelGroup, LiteLLMSettings } from "../src/types"
 
 const settings: LiteLLMSettings = { endpoint: "https://litellm.example.com", apiKey: "sk-test-12345678" }
 
@@ -92,5 +92,29 @@ describe("discoverModels", () => {
   test("throws LiteLLMError for a failing client request", async () => {
     const badSettings = { ...settings, endpoint: "http://127.0.0.1:1" }
     await expect(discoverModels(badSettings)).rejects.toThrow(LiteLLMError)
+  })
+})
+
+describe("findMeta", () => {
+  const byId = new Map<string, LiteLLMModelGroup>([
+    ["gpt-4o", { model_group: "gpt-4o", mode: "chat" }],
+    ["dall-e-2", { model_group: "dall-e-2", mode: "image_generation" }],
+    ["openai/text-embedding-3-large", { model_group: "openai/text-embedding-3-large", mode: "embedding" }],
+  ])
+
+  test("matches exact id first", () => {
+    expect(findMeta("gpt-4o", byId)?.mode).toBe("chat")
+  })
+
+  test("strips provider prefix", () => {
+    expect(findMeta("openai/gpt-4o", byId)?.mode).toBe("chat")
+  })
+
+  test("strips multiple segments (image size/quality variants)", () => {
+    expect(findMeta("openai/1024-x-1024/dall-e-2", byId)?.mode).toBe("image_generation")
+  })
+
+  test("returns undefined when nothing matches", () => {
+    expect(findMeta("totally/unknown/model", byId)).toBeUndefined()
   })
 })

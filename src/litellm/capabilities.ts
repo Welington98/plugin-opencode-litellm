@@ -11,24 +11,64 @@ import type { LiteLLMModelGroup } from "../types"
  *   assumed.
  */
 
-/** Modes that can be used for chat completions through the proxy. */
-const CHAT_MODES = new Set(["", "chat", "chat-completion", "completion", "responses", "chat_completion"])
+/**
+ * Modes that can be used for chat completions through the proxy.
+ *
+ * These mirror LiteLLM's `ModelInfoBase.mode` literal where a value is chat
+ * capable. Note `completion` is NOT chat — it is base text completion (e.g.
+ * `davinci-002`, `gpt-3.5-turbo-instruct`) and must be filtered out.
+ */
+const CHAT_MODES = new Set(["", "chat", "chat-completion", "chat_completion", "responses"])
 
-/** Non-chat modes we should not expose in the model picker. */
+/**
+ * Non-chat modes we should not expose in the model picker.
+ *
+ * Covers LiteLLM's real `mode` values (`completion`, `embedding`,
+ * `image_generation`, `audio_transcription`, `ocr`, `realtime`, ...) plus a
+ * few historical/legacy spellings that have shown up in proxies.
+ */
 const NON_CHAT_MODES = new Set([
+  "completion",
+  "text_completion",
   "embedding",
   "embeddings",
   "image_generation",
   "image-generation",
   "audio_transcription",
-  "audio-speech",
   "audio_speech",
+  "audio-speech",
+  "speech",
   "rerank",
   "reranking",
   "moderation",
-  "text_completion",
+  "ocr",
+  "realtime",
   "real_time",
 ])
+
+/**
+ * Id patterns that identify non-chat models when no authoritative `mode`
+ * metadata is available (metadata endpoint down, or the model id does not
+ * match any `model_group` key). `/v1/models` returns the full proxy model
+ * list, so without this the picker would surface embeddings, image/audio/video
+ * generation, transcription, moderation and base-completion models as chat.
+ */
+const NON_CHAT_ID_PATTERNS: RegExp[] = [
+  /\bembedding(s)?\b/i,
+  /\bdall[-_]?e\b/i,
+  /\bimage\b/i,
+  /\bwhisper\b/i,
+  /\btranscrib(e|ing|ption)\b/i,
+  /\btts\b/i,
+  /\bspeech\b/i,
+  /\bmoderation\b/i,
+  /\bsora\b/i,
+  /\brealtime\b/i,
+  /\brerank(ing)?\b/i,
+  /\binstruct\b/i,
+  /\b(babbage|davinci)\b/i,
+  /\baudio\b/i,
+]
 
 export type Capabilities = {
   temperature: boolean
@@ -62,6 +102,27 @@ export function isChatMode(mode: string | undefined): boolean {
   if (CHAT_MODES.has(value)) return true
   if (NON_CHAT_MODES.has(value)) return false
   return true
+}
+
+/** True when a model id carries an obvious non-chat marker (no mode available). */
+export function looksNonChatModel(id: string): boolean {
+  const value = id.trim().toLowerCase()
+  if (value.startsWith("ft:")) return true
+  return NON_CHAT_ID_PATTERNS.some((re) => re.test(value))
+}
+
+/**
+ * Decide whether a discovered model id should be exposed as a chat model.
+ *
+ * Priority:
+ *   1. authoritative `mode` metadata (chat/responses => keep; others => drop)
+ *   2. unknown/missing mode => conservative name heuristic
+ */
+export function isChatModel(id: string, meta: LiteLLMModelGroup | undefined): boolean {
+  const mode = (meta?.mode ?? "").trim().toLowerCase()
+  if (mode !== "" && CHAT_MODES.has(mode)) return true
+  if (mode !== "" && NON_CHAT_MODES.has(mode)) return false
+  return !looksNonChatModel(id)
 }
 
 export function buildCapabilities(meta: LiteLLMModelGroup | undefined): Capabilities {
