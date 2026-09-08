@@ -47,11 +47,12 @@ const NON_CHAT_MODES = new Set([
 ])
 
 /**
- * Id patterns that identify non-chat models when no authoritative `mode`
- * metadata is available (metadata endpoint down, or the model id does not
- * match any `model_group` key). `/v1/models` returns the full proxy model
- * list, so without this the picker would surface embeddings, image/audio/video
- * generation, transcription, moderation and base-completion models as chat.
+ * Id patterns that identify non-chat models. `/v1/models` returns the full
+ * proxy model list, and LiteLLM's `mode` metadata is unreliable (many proxies
+ * report `mode: "chat"` for embeddings, image gen, TTS, ...), so these name
+ * markers are the authoritative signal for exclusions. Covers embeddings,
+ * image/audio/video generation, transcription, moderation, base completions
+ * and a few LiteLLM/OpenAI special names.
  */
 const NON_CHAT_ID_PATTERNS: RegExp[] = [
   /\bembedding(s)?\b/i,
@@ -68,7 +69,17 @@ const NON_CHAT_ID_PATTERNS: RegExp[] = [
   /\binstruct\b/i,
   /\b(babbage|davinci)\b/i,
   /\baudio\b/i,
+  /\ball[-_]?proxy[-_]?models\b/i,
+  /\bcontainer\b/i,
+  /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i,
 ]
+
+/**
+ * Providers that indicate a test/placeholder model group rather than a real
+ * model (e.g. LiteLLM's `auto_router`). A group with no concrete provider has
+ * nothing routable behind it and cannot serve chat.
+ */
+const NON_REAL_PROVIDERS = new Set(["auto_router"])
 
 export type Capabilities = {
   temperature: boolean
@@ -114,15 +125,26 @@ export function looksNonChatModel(id: string): boolean {
 /**
  * Decide whether a discovered model id should be exposed as a chat model.
  *
- * Priority:
- *   1. authoritative `mode` metadata (chat/responses => keep; others => drop)
- *   2. unknown/missing mode => conservative name heuristic
+ * LiteLLM's `mode` metadata is unreliable (proxies commonly report
+ * `mode: "chat"` for every model group, including embeddings and image gen),
+ * so the name heuristic is authoritative for exclusions and `mode` only ever
+ * adds further exclusions.
  */
 export function isChatModel(id: string, meta: LiteLLMModelGroup | undefined): boolean {
+  if (looksNonChatModel(id)) return false
+  if (meta && isDegenerateGroup(meta)) return false
   const mode = (meta?.mode ?? "").trim().toLowerCase()
-  if (mode !== "" && CHAT_MODES.has(mode)) return true
-  if (mode !== "" && NON_CHAT_MODES.has(mode)) return false
-  return !looksNonChatModel(id)
+  if (NON_CHAT_MODES.has(mode)) return false
+  return true
+}
+
+/** True when a model group has no routable provider (empty or placeholder). */
+function isDegenerateGroup(meta: LiteLLMModelGroup): boolean {
+  const raw = meta.providers
+  if (raw === undefined || raw === null) return false
+  const providers = raw.filter((p) => typeof p === "string" && p.length > 0)
+  if (providers.length === 0) return true
+  return providers.every((p) => NON_REAL_PROVIDERS.has(p.toLowerCase()))
 }
 
 export function buildCapabilities(meta: LiteLLMModelGroup | undefined): Capabilities {
