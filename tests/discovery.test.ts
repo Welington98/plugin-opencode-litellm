@@ -93,6 +93,46 @@ describe("discoverModels", () => {
     const badSettings = { ...settings, endpoint: "http://127.0.0.1:1" }
     await expect(discoverModels(badSettings)).rejects.toThrow(LiteLLMError)
   })
+
+  test("drops blocked (paused/disabled) models and non-chat models", async () => {
+    const server = Bun.serve({
+      port: 0,
+      fetch(req) {
+        const url = new URL(req.url)
+        if (url.pathname === "/v1/models") {
+          return Response.json({
+            data: [
+              { id: "gpt-4o" },
+              { id: "gpt-4o-mini" },
+              { id: "openai/text-embedding-3-large" },
+              { id: "openai/dall-e-2" },
+              { id: "gpt-5.4" },
+            ],
+          })
+        }
+        if (url.pathname === "/v1/model/info") {
+          return Response.json({
+            data: [
+              { model_name: "gpt-4o", model_info: { blocked: false, mode: "chat", supports_vision: true } },
+              { model_name: "gpt-4o-mini", model_info: { blocked: false, mode: "chat" } },
+              { model_name: "openai/text-embedding-3-large", model_info: { blocked: false, mode: "embedding" } },
+              { model_name: "openai/dall-e-2", model_info: { blocked: false, mode: "image_generation" } },
+              { model_name: "gpt-5.4", model_info: { blocked: true, mode: "chat" } },
+            ],
+          })
+        }
+        return new Response("Not found", { status: 404 })
+      },
+    })
+
+    try {
+      const result = await discoverModels({ endpoint: server.url.origin, apiKey: "sk-test-12345678" })
+      const ids = Object.keys(result.models)
+      expect(ids).toEqual(["gpt-4o", "gpt-4o-mini"])
+    } finally {
+      server.stop(true)
+    }
+  })
 })
 
 describe("findMeta", () => {

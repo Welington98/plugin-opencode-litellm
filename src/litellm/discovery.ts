@@ -12,9 +12,11 @@ export { CACHE_TTL_MS }
  *
  * Preference order:
  *   GET /v1/models                 -> authorized model ids
- *   GET /model_group/info          -> richest capability metadata
- *   GET /v1/model/info             -> fallback capability metadata
+ *   GET /v1/model/info             -> capability + `blocked` metadata (primary)
+ *   GET /model_group/info          -> fallback capability metadata (no `blocked`)
  *   (no metadata)                  -> conservative defaults
+ *
+ * Models reported as `blocked` (paused/disabled) are never exposed.
  */
 export async function discoverModels(settings: LiteLLMSettings): Promise<DiscoveryResult> {
   const client = new LiteLLMClient(settings)
@@ -26,35 +28,46 @@ export async function discoverModels(settings: LiteLLMSettings): Promise<Discove
   const ids = modelsResult.data.data.map((item) => item.id).filter((id): id is string => typeof id === "string" && id.length > 0)
 
   // Capability metadata is best-effort: failures degrade to conservative defaults.
-  let groups: LiteLLMModelGroup[] = []
-  const groupResult = await client.fetchModelGroupInfo()
-  if (groupResult.ok) {
-    groups = groupResult.data.data
-  } else {
-    const infoResult = await client.fetchModelInfo()
-    if (infoResult.ok) {
-      groups = infoResult.data.data
-        .filter((item) => typeof item.model_name === "string")
-        .map((item) => ({
-          ...(item.model_info ?? {}),
-          model_group: item.model_name,
-        }))
+  // We merge two sources because they expose different fields:
+  //   - /v1/model/info     -> `blocked` (paused/disabled) + capabilities
+  //   - /model_group/info  -> `providers` (placeholder detection) + capabilities
+  const infoMap = new Map<string, LiteLLMModelGroup>()
+  const infoResult = await client.fetchModelInfo()
+  if (infoResult.ok) {
+    for (const item of infoResult.data.data) {
+      if (typeof item.model_name === "string" && item.model_name.length > 0) {
+        infoMap.set(item.model_name, { ...(item.model_info ?? {}), model_group: item.model_name })
+      }
     }
   }
 
-  const byId = new Map<string, LiteLLMModelGroup>()
-  for (const group of groups) {
-    if (typeof group.model_group === "string" && group.model_group.length > 0) {
-      byId.set(group.model_group, group)
+  const groupMap = new Map<string, LiteLLMModelGroup>()
+  const groupResult = await client.fetchModelGroupInfo()
+  if (groupResult.ok) {
+    for (const group of groupResult.data.data) {
+      if (typeof group.model_group === "string" && group.model_group.length > 0) {
+        groupMap.set(group.model_group, group)
+      }
     }
+  }
+
+  // Merge: `/model_group/info` provides providers/capabilities, overlay the
+  // `blocked` flag from `/v1/model/info`.
+  const byId = new Map<string, LiteLLMModelGroup>()
+  for (const [name, group] of groupMap) {
+    byId.set(name, { ...group, blocked: infoMap.get(name)?.blocked })
+  }
+  for (const [name, info] of infoMap) {
+    if (!byId.has(name)) byId.set(name, info)
   }
 
   const models: Record<string, LiteLLMModel> = {}
   for (const id of ids) {
     const meta = findMeta(id, byId)
+    // Skip paused/disabled models (LiteLLM reports them via `blocked`).
+    if (meta && meta.blocked === true) continue
     // Exclude non-chat models (embeddings, image gen, base completions, ...)
-    // using authoritative `mode` metadata when available, or the name
-    // heuristic otherwise.
+    // using the name heuristic (authoritative) plus `mode` metadata.
     if (!isChatModel(id, meta)) continue
     models[id] = buildModel(id, settings, meta)
   }

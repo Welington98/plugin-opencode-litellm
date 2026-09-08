@@ -39,6 +39,7 @@ export type LiteLLMModelGroup = {
   model_group: string
   providers?: string[] | null
   mode?: string | null
+  blocked?: boolean
   supports_vision?: boolean
   supports_function_calling?: boolean
   supports_parallel_function_calling?: boolean
