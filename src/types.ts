@@ -37,8 +37,9 @@ export type LiteLLMSettings = {
 /** A model group descriptor returned by LiteLLM metadata endpoints. */
 export type LiteLLMModelGroup = {
   model_group: string
-  providers?: string[]
-  mode?: string
+  providers?: string[] | null
+  mode?: string | null
+  blocked?: boolean
   supports_vision?: boolean
   supports_function_calling?: boolean
   supports_parallel_function_calling?: boolean

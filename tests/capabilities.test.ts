@@ -116,6 +116,12 @@ describe("looksNonChatModel", () => {
     expect(looksNonChatModel("openai/gpt-audio")).toBe(true)
   })
 
+  test("flags LiteLLM/OpenAI special names", () => {
+    expect(looksNonChatModel("all-proxy-models")).toBe(true)
+    expect(looksNonChatModel("openai/container")).toBe(true)
+    expect(looksNonChatModel("openai/36eda949-ec8a-4c00-a73d-e995d2cb84fc")).toBe(true)
+  })
+
   test("does not flag chat ids", () => {
     expect(looksNonChatModel("gpt-4o")).toBe(false)
     expect(looksNonChatModel("openai/gpt-4o")).toBe(false)
@@ -126,16 +132,26 @@ describe("looksNonChatModel", () => {
 })
 
 describe("isChatModel", () => {
-  test("prefers authoritative mode metadata", () => {
+  test("name heuristic wins over a misleading chat mode", () => {
     expect(isChatModel("babbage-002", { model_group: "babbage-002", mode: "completion" })).toBe(false)
-    expect(isChatModel("babbage-002", { model_group: "babbage-002", mode: "chat" })).toBe(true)
-    expect(isChatModel("gpt-4o", { model_group: "gpt-4o", mode: "chat" })).toBe(true)
-    expect(isChatModel("sora-2", { model_group: "sora-2", mode: "image_generation" })).toBe(false)
+    expect(isChatModel("babbage-002", { model_group: "babbage-002", mode: "chat" })).toBe(false)
+    expect(isChatModel("openai/text-embedding-3-large", { model_group: "text-embedding-3-large", mode: "chat" })).toBe(false)
   })
 
-  test("falls back to name heuristic when mode is missing/unknown", () => {
-    expect(isChatModel("openai/text-embedding-3-large", undefined)).toBe(false)
+  test("keeps chat ids regardless of missing mode", () => {
+    expect(isChatModel("gpt-4o", { model_group: "gpt-4o", mode: "chat" })).toBe(true)
     expect(isChatModel("gpt-4o", undefined)).toBe(true)
     expect(isChatModel("openai/gpt-4o", { model_group: "openai/gpt-4o" })).toBe(true)
+  })
+
+  test("drops models whose mode is explicitly non-chat", () => {
+    expect(isChatModel("sora-2", { model_group: "sora-2", mode: "image_generation" })).toBe(false)
+    expect(isChatModel("some-model", { model_group: "some-model", mode: "embedding" })).toBe(false)
+  })
+
+  test("drops placeholder/degenerate groups without a concrete provider", () => {
+    expect(isChatModel("Teste", { model_group: "Teste", providers: ["auto_router"], mode: null })).toBe(false)
+    expect(isChatModel("ghost", { model_group: "ghost", providers: [] })).toBe(false)
+    expect(isChatModel("gpt-4o", { model_group: "gpt-4o", providers: ["openai"], mode: "chat" })).toBe(true)
   })
 })

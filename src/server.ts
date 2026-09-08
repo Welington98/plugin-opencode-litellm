@@ -20,6 +20,7 @@ import { readAuthRecord, removeAuthRecord } from "./store/auth-file"
 import { buildProviderConfig } from "./provider/config-provider"
 import { toModelMeta } from "./provider/models"
 import { maskSecret, safeErrorMessage } from "./security/secrets"
+import { pluginVersion } from "./config/version"
 
 export type { LiteLLMModel, LiteLLMSettings } from "./types"
 
@@ -435,6 +436,7 @@ async function awaitStatusText(): Promise<string> {
 
   const lines = [
     "LiteLLM: Connected",
+    `Version: ${pluginVersion()}`,
     `Endpoint: ${settings.endpoint}`,
     `API Key: ${maskSecret(settings.apiKey)}`,
     `Models: ${count}`,

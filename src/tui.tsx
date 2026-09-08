@@ -8,6 +8,7 @@ import { buildMetadata } from "./config/settings"
 import { toModelMeta } from "./provider/models"
 import { maskSecret, safeErrorMessage } from "./security/secrets"
 import { readAuthRecord, removeAuthRecord } from "./store/auth-file"
+import { pluginVersion } from "./config/version"
 import type { ModelsCache } from "./types"
 
 /**
@@ -257,6 +258,7 @@ async function showStatus(api: TuiPluginApi): Promise<void> {
         <text fg={theme.textMuted}>Run /litellm setup to configure your LiteLLM proxy.</text>
       )}
       <text fg={theme.text}>Models discovered: {modelCount}</text>
+      <text fg={theme.textMuted}>Version: {pluginVersion()}</text>
       {fbList.length > 0 && (
         <box flexDirection="column" gap={0}>
           <text fg={theme.text}>Fallbacks:</text>

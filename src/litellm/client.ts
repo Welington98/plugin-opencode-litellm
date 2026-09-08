@@ -205,7 +205,7 @@ export class LiteLLMClient {
     return { ok: true, data: result.data as { data: LiteLLMModelsItem[] } }
   }
 
-  /** GET <endpoint>/model_group/info — richest capability metadata. Best-effort. */
+  /** GET <endpoint>/model_group/info — capability metadata (no `blocked` flag). Best-effort. */
   async fetchModelGroupInfo(timeoutMs?: number): Promise<FetchResult<{ data: LiteLLMModelGroup[] }>> {
     const result = await this.request<{ data?: LiteLLMModelGroup[] }>("/model_group/info", timeoutMs)
     if (!result.ok) return result
@@ -215,7 +215,10 @@ export class LiteLLMClient {
     return { ok: true, data: result.data as { data: LiteLLMModelGroup[] } }
   }
 
-  /** GET <endpoint>/v1/model/info — fallback capability metadata. Best-effort. */
+  /**
+   * GET <endpoint>/v1/model/info — capability metadata including the `blocked`
+   * flag (paused/disabled models). Primary metadata source. Best-effort.
+   */
   async fetchModelInfo(timeoutMs?: number): Promise<FetchResult<{ data: LiteLLMModelInfoItem[] }>> {
     const result = await this.request<{ data?: LiteLLMModelInfoItem[] }>("/v1/model/info", timeoutMs)
     if (!result.ok) return result
