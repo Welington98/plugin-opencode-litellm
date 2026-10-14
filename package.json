@@ -1,6 +1,6 @@
 {
   "name": "@welington98/opencode-litellm",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "description": "OpenCode plugin/provider for LiteLLM Proxy — configure endpoint + API key inside OpenCode and auto-discover authorized models.",
   "license": "MIT",
   "type": "module",
@@ -37,7 +37,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "bun build ./src/server.ts --outdir dist --target bun && bun build ./src/tui.tsx --outdir dist --target bun --external '@opentui/*' --external 'solid-js' --external '@opencode-ai/plugin' --external '@opencode-ai/sdk' && tsc -p tsconfig.build.json",
+    "build": "bun build ./src/server.ts --outdir dist --target bun --external '@opencode/*' --external 'effect' --external 'effect/*' && bun build ./src/tui.tsx --outdir dist --target bun --external '@opentui/*' --external 'solid-js' --external '@opencode-ai/plugin' --external '@opencode-ai/sdk' && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "prepublishOnly": "bun run build"
@@ -54,9 +54,12 @@
     "node": ">=18"
   },
   "peerDependencies": {
+    "@opencode/plugin": "^2.0.29",
+    "effect": "^4.0.0",
     "@opencode-ai/plugin": ">=1.0.0"
   },
   "dependencies": {
+    "@opencode/plugin": "^2.0.29",
     "@opencode-ai/plugin": "^1.18.18",
     "@opencode-ai/sdk": "^1.18.18"
   },
