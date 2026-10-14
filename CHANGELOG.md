@@ -1,3 +1,9 @@
+## [1.1.3](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.2...v1.1.3) (2026-10-14)
+
+### Bug Fixes
+
+* **plugin:** migrate server entrypoint to OpenCode V2 ([#7](https://github.com/Welington98/plugin-opencode-litellm/issues/7)) ([c223bb7](https://github.com/Welington98/plugin-opencode-litellm/commit/c223bb78b623af0a8ea319c130eef96131b2964d))
+
 ## 2.0.0
 
 - Migrate the server entrypoint to the OpenCode V2 plugin API.
