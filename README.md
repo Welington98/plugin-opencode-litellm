@@ -24,20 +24,17 @@ Test Connection  ✓  ✓  ✓
 
 ## Instalação
 
-> **Instale sempre de forma global (`-g`)** para o plugin valer em qualquer projeto. Sem `-g` ele é instalado apenas no repositório atual (`.opencode/`).
+> No OpenCode V2, `plugin add` instala o pacote na configuração global do usuário. Para configuração específica do projeto, adicione o pacote ao array `plugins` do `opencode.json(c)`.
 
 ```bash
 # global (usuário) — disponível em qualquer projeto
-opencode plugin @welington98/opencode-litellm -g
+opencode plugin add @welington98/opencode-litellm
 
 # atualizar para a versão mais recente já instalada
-opencode plugin @welington98/opencode-litellm -g -f
-
-# (alternativa) instalar apenas no projeto atual
-opencode plugin @welington98/opencode-litellm
+opencode plugin update @welington98/opencode-litellm
 
 # ou instale no TUI:
-#   /plugins  →  install  →  @welington98/opencode-litellm
+#   use a configuração `plugins` no opencode.json(c)
 ```
 
 Ou adicione manualmente em `opencode.json` (global em `~/.config/opencode/opencode.json` ou local no projeto):
@@ -238,14 +235,14 @@ bun scripts/mock-litellm.ts 4000
 
 # instalar a versão local em um projeto de teste:
 #   copie dist/ para onde preferir e aponte o plugin para ele
-#   (ou publique o pacote e use opencode plugin @welington98/opencode-litellm)
+#   (ou publique o pacote e use opencode plugin add @welington98/opencode-litellm)
 ```
 
 ## Release & publicação (CI)
 
 - **Versionamento**: `semantic-release` roda em `.github/workflows/release.yml` a cada push para `main` — analisa os Conventional Commits, gera `CHANGELOG.md` e cria a GitHub Release.
 - **npm**: cada release também publica o pacote em `@welington98/opencode-litellm` (via `@semantic-release/npm`), usando o secret `NPM_TOKEN` configurado no repositório (`gh secret set NPM_TOKEN` com um token npm de Automation). O `prepublishOnly` roda o build antes do publish.
-- **Instalação global (usuário)**: para disponibilizar o plugin em qualquer projeto, use `opencode plugin @welington98/opencode-litellm -g` (grava em `~/.config/opencode/{opencode,tui}.json`). Para atualizar uma versão já instalada: `opencode plugin @welington98/opencode-litellm -g -f`.
+- **Instalação global (usuário)**: para disponibilizar o plugin em qualquer projeto, use `opencode plugin add @welington98/opencode-litellm` (grava em `~/.config/opencode/opencode.json`). Para atualizar uma versão já instalada: `opencode plugin update @welington98/opencode-litellm`.
 - O repo é público, então o workflow é autocontido (não chama reusable workflows internos da org).
 
 ---
