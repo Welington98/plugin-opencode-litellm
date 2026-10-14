@@ -37,7 +37,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "bun build ./src/server.ts --outdir dist --target bun --external '@opencode/*' --external 'effect' --external 'effect/*' && bun build ./src/tui.tsx --outdir dist --target bun --external '@opentui/*' --external 'solid-js' --external '@opencode-ai/plugin' --external '@opencode-ai/sdk' && tsc -p tsconfig.build.json",
+    "build": "bun build ./src/server.ts --outdir dist --target bun --external '@opencode/*' --external 'effect' --external 'effect/*' && bun build ./src/tui.tsx --outdir dist --target bun --external '@opencode/*' --external '@opencode-ai/*' && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "prepublishOnly": "bun run build"
