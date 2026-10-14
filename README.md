@@ -19,7 +19,7 @@ Test Connection  ✓  ✓  ✓
 
 ## Requisitos
 
-- OpenCode 1.18+ (plugin `server()` + `tui()`).
+- OpenCode 2.0+ (V2 server plugin definition).
 - Um servidor LiteLLM Proxy acessível (com `GET /v1/models` e, idealmente, `/model_group/info`).
 
 ## Instalação
@@ -45,7 +45,7 @@ Ou adicione manualmente em `opencode.json` (global em `~/.config/opencode/openco
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@welington98/opencode-litellm"]
+  "plugins": ["@welington98/opencode-litellm"]
 }
 ```
 

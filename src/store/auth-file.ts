@@ -60,3 +60,10 @@ export async function removeAuthRecord(providerID: string): Promise<void> {
   delete json[providerID]
   await Bun.write(authFilePath(), JSON.stringify(json, null, 2))
 }
+
+/** Write one API credential while preserving credentials for other providers. */
+export async function writeAuthRecord(providerID: string, auth: ApiAuth): Promise<void> {
+  const json = await readAll()
+  json[providerID] = auth
+  await Bun.write(authFilePath(), JSON.stringify(json, null, 2))
+}

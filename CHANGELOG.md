@@ -1,3 +1,10 @@
+## 2.0.0
+
+- Migrate the server entrypoint to the OpenCode V2 plugin API.
+- Export a V2 definition with an `id` and `setup` function.
+- Register the LiteLLM provider and management tools through V2 domains.
+- Require OpenCode 2.x and `@opencode/plugin`.
+
 ## [1.1.2](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.1...v1.1.2) (2026-09-08)
 
 ### Bug Fixes
