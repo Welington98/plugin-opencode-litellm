@@ -101,8 +101,61 @@ async function loadModels(
   }
 }
 
-function asV2Models(models: Record<string, LegacyModel>) {
-  return Object.values(models).map((model) => model as unknown as Model.Info)
+function asV2Models(models: Record<string, LegacyModel>): Model.Info[] {
+  return Object.values(models).map((model) => {
+    const input = Object.entries(model.capabilities.input)
+      .filter(([, supported]) => supported)
+      .map(([modality]) => modality)
+    const output = Object.entries(model.capabilities.output)
+      .filter(([, supported]) => supported)
+      .map(([modality]) => modality)
+
+    return {
+      id: model.id,
+      modelID: model.id,
+      providerID: model.providerID,
+      name: model.name,
+      family: model.family,
+      api: {
+        id: model.api.id,
+        type: "aisdk" as const,
+        package: model.api.npm,
+        url: model.api.url,
+      },
+      capabilities: {
+        tools: model.capabilities.toolcall,
+        input,
+        output,
+      },
+      request: {
+        headers: model.headers ?? {},
+        body: model.options ?? {},
+      },
+      variants: Object.entries(model.variants ?? {}).map(([id, variant]) => ({
+        id,
+        settings: variant,
+        headers: {},
+        body: {},
+      })),
+      time: {
+        released: model.release_date ? Date.parse(model.release_date) || 0 : 0,
+      },
+      cost: [
+        {
+          input: model.cost.input,
+          output: model.cost.output,
+          cache: model.cost.cache,
+        },
+      ],
+      status: model.status,
+      enabled: model.status !== "deprecated",
+      limit: {
+        context: model.limit.context,
+        input: model.limit.input,
+        output: model.limit.output,
+      },
+    } as unknown as Model.Info
+  })
 }
 
 async function refreshModels(ctx: Plugin.Context, setModels: (models: Model.Info[]) => void): Promise<string> {
