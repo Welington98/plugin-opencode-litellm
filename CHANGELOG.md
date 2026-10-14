@@ -1,3 +1,9 @@
+## [1.1.4](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.3...v1.1.4) (2026-10-14)
+
+### Bug Fixes
+
+* **plugin:** migrate tui entrypoint to OpenCode V2 ([d0f9be2](https://github.com/Welington98/plugin-opencode-litellm/commit/d0f9be214a5812e0c80e87dec8885cc150039cc7))
+
 ## [1.1.3](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.2...v1.1.3) (2026-10-14)
 
 ### Bug Fixes
