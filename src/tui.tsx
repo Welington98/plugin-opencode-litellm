@@ -34,16 +34,35 @@ import type { ModelsCache } from "./types"
 export default {
   id: "welington98.opencode-litellm.tui",
   setup(context: Plugin.Context) {
+    const entries = [
+      { sub: "status", title: "LiteLLM status", description: "Show LiteLLM connection status" },
+      { sub: "setup", title: "Connect LiteLLM", description: "Configure LiteLLM endpoint and API key" },
+      { sub: "refresh", title: "Refresh LiteLLM models", description: "Re-discover models from the LiteLLM proxy" },
+      { sub: "fallback", title: "LiteLLM fallback", description: "Configure fallbacks for images, PDFs and audio" },
+      { sub: "disconnect", title: "Disconnect LiteLLM", description: "Remove the LiteLLM credential and models" },
+    ]
+    // `palette: true` is required for the command to be listed in ctrl+p and in the `/` autocomplete.
     context.keymap.layer(() => ({
+      mode: "global",
       commands: [
         {
-          id: "litellm",
+          id: "welington98.litellm",
           title: "LiteLLM",
           description: "Connect, inspect and manage the LiteLLM proxy",
           group: "LiteLLM",
+          palette: true,
+          suggested: true,
           slash: { name: "litellm", arguments: true },
           run: (input?: string) => dispatch(context, input),
         },
+        ...entries.map((entry) => ({
+          id: `welington98.litellm.${entry.sub}`,
+          title: entry.title,
+          description: entry.description,
+          group: "LiteLLM",
+          palette: true,
+          run: () => dispatch(context, entry.sub),
+        })),
       ],
     }))
   },
