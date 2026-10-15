@@ -1,3 +1,9 @@
+## [1.1.5](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.4...v1.1.5) (2026-10-15)
+
+### Bug Fixes
+
+* **provider:** adapt models to OpenCode V2 shape ([#10](https://github.com/Welington98/plugin-opencode-litellm/issues/10)) ([84f8581](https://github.com/Welington98/plugin-opencode-litellm/commit/84f85815a80a197600ae9e27545c443b7fd8231b))
+
 ## [1.1.4](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.3...v1.1.4) (2026-10-14)
 
 ### Bug Fixes
