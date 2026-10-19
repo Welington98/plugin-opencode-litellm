@@ -60,7 +60,7 @@ export default {
           title: entry.title,
           description: entry.description,
           group: "LiteLLM",
-          palette: true,
+          palette: true as const,
           run: () => dispatch(context, entry.sub),
         })),
       ],
