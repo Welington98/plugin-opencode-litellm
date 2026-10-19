@@ -1,3 +1,9 @@
+## [1.1.6](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.5...v1.1.6) (2026-10-19)
+
+### Bug Fixes
+
+* **tui:** list litellm commands in palette and slash autocomplete ([#11](https://github.com/Welington98/plugin-opencode-litellm/issues/11)) ([54b7118](https://github.com/Welington98/plugin-opencode-litellm/commit/54b711896611a944cf1c7a6637732439be0be689))
+
 ## [1.1.5](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.4...v1.1.5) (2026-10-15)
 
 ### Bug Fixes
