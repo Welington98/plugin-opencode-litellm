@@ -61,6 +61,8 @@ export default {
           description: entry.description,
           group: "LiteLLM",
           palette: true as const,
+          suggested: true as const,
+          slash: { name: `litellm ${entry.sub}` },
           run: () => dispatch(context, entry.sub),
         })),
       ],
