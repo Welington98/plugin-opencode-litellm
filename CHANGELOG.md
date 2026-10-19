@@ -1,3 +1,9 @@
+## [1.1.7](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.6...v1.1.7) (2026-10-19)
+
+### Bug Fixes
+
+* **tui:** restore /litellm subcommand slash menu ([#12](https://github.com/Welington98/plugin-opencode-litellm/issues/12)) ([0ad3b20](https://github.com/Welington98/plugin-opencode-litellm/commit/0ad3b20781f67abd70003d8e22d48bbfa92c8c7b))
+
 ## [1.1.6](https://github.com/Welington98/plugin-opencode-litellm/compare/v1.1.5...v1.1.6) (2026-10-19)
 
 ### Bug Fixes
